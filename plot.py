@@ -1,4 +1,4 @@
-from ant import Ant, Grid
+from ant import Grid
 import matplotlib.pyplot as plt
 
 # Initialize grid

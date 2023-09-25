@@ -1,135 +1,94 @@
-import random
-import numpy as np
+# Setting coordinates for each of the 8 directions an ant could travel in.
+DIRECTIONS = [
+    [0, 1], [1, 1], [1, 0], [1, -1],
+    [0, -1], [-1, -1], [-1, 0], [-1, 1]
+]
 
-def edge_snip(arr, min_value, max_value=None):
-        if max_value is None:
-            max_value = arr.max()
-        for i in range(arr.shape[0]):
-            for j in range(arr.shape[1]):
-                arr[i][j] = max(min(arr[i][j], max_value), min_value)
-        return arr
 
-class Ant():
+class Ant:
+    """
+    Initialize an Ant instance.
 
-    def __init__(self, x, y, direction):
-        self.x = x
-        self.y = y
-        self.direction = direction
-        self.directions = [[1, 0], [1, 1], [0, 1], [-1, 1],
-                           [-1, 0], [-1, -1], [0, -1], [1, -1]]
-        self.find_next_possible_points()
+    Attributes:
+        x_coord: an integer representing the x-coordinate of the ant's location.
+        y_coord: an integer representing the y-coordinate of the ant's location.
+        current_direction: A list of two integers representing the current direction of the ant.
 
-    def find_next_possible_points(self):
+    """
 
-        self.possible_directions = []
-        current_direct_index = self.directions.index(self.direction)
-        self.possible_directions.append(self.direction)
-        self.possible_directions.append(
-            self.directions[(current_direct_index + 1) % 8])
-        self.possible_directions.append(
-            self.directions[(current_direct_index - 1 + 8) % 8])
+    def __init__(self, x_coord, y_coord, current_direction):
+        """
+        Initialize an Ant instance.
 
+        Args:
+            x_coord: an integer representing the x-coordinate of the ant's location.
+            y_coord: an integer representing the y-coordinate of the ant's location.
+            current_direction: A list of two integers representing the current direction of the ant.
+
+        Returns: N/A        
+        """
+        # Setting attributes of all ants.
+        self.x_coord = x_coord
+        self.y_coord = y_coord
+        self.current_direction = current_direction
+        self.calculate_next_possible_directions()
+
+    def calculate_next_possible_directions(self):
+        """
+        Calculate the next possible directions for the ant based on its current direction.
+
+        Args: N/A
+
+        Returns:
+            self.possible_directions: A list of lists (each with two integers) representing possible directions.
+        """
+        # Pulling index of current direction
+        current_direction_index = DIRECTIONS.index(self.current_direction)
+
+        # The three possible directions the ant can go is straight, left, and right.
+        # These can be representing in context of the index of the current direction
+        # by adding offsets to the index.
+        offsets = [0, 1, -1]
+
+        # Using loop to append straight, left, and right directions to possible directions.
+        self.possible_directions = [
+            DIRECTIONS[(current_direction_index + offset) % 8]
+            for offset in offsets
+        ]
         return self.possible_directions
 
-    def pheromone_check(self, grid) -> list:
-        neighbor_pheromones = []
+    def pheromone_check(self, grid):
+        """
+        Check pheromone levels in neighboring directions and count the number of trails.
+
+        Args:
+            grid (list of list of float): A list of lists of floats representing the pheromone levels in the grid.
+
+        Returns:
+            neighbor_pheromone_levels: A list of floats representing pheromone levels in neighboring cells.
+            trail_count: An integer representing the number of neighboring cells with nonzero pheromone levels.
+        """
+        # Initializing variables for function.
+        neighbor_pheromone_levels = []
         trail_count = 0
-        for x, y in self.possible_directions:
-            if 0 <= self.x + x < 256 and 0 <= self.y + y < 256:
-                # If the point exists on the grid, then record its concentration
-                pheromone = grid[self.x + x][self.y + y]
-                if pheromone > 0:
-                    trail_count += 1
+        grid_size = len(grid)
+
+        # For each of the possible directions the loop looks at the point the ant would go to if they were to travel in that direction.
+        for dx, dy in self.possible_directions:
+            new_x, new_y = self.x_coord + dx, self.y_coord + dy
+
+            # Ensuring point is within the grid limits.
+            if 0 <= new_x < grid_size and 0 <= new_y < grid_size:
+                pheromone = grid[new_x][new_y]
             else:
-                pheromone = 0  # If the point does not exist on the grid, then set its concentration to 0
-            neighbor_pheromones.append(pheromone)
+                pheromone = 0
 
-        return neighbor_pheromones, trail_count
+            # Adding pheromone level of each point to list.
+            neighbor_pheromone_levels.append(pheromone)
 
+            # If the pheromone level is grearter than 0, an ant has been here before.
+            # This direction could be a potential trail so the trail count is increased by 1.
+            if pheromone > 0:
+                trail_count += 1
 
-class Grid():
-
-    def __init__(self, s, deposition_rate, evaporation_rate, fidelity, turnProbability=[0.3175, 0.3089, 0.2231, 0.1304, 0.0101]):
-        self.s = s
-        self.z = np.zeros((s, s))
-        self.future_z = np.zeros((s, s))
-        self.deposition_rate = deposition_rate
-        self.evaporation_rate = evaporation_rate
-        self.fidelity = fidelity
-        self.directions = [[1, 0], [1, 1], [0, 1], [-1, 1],
-                           [-1, 0], [-1, -1], [0, -1], [1, -1]]
-        self.ants = []
-        self.ants_tracking = []
-        self.turnProbability = turnProbability
-        self.spawn_point = self.s // 2
-
-    def ant_spawn(self):
-        [x, y] = random.choice(self.directions)
-        ant = Ant(x=self.spawn_point + x,
-                  y=self.spawn_point + y, direction=[x, y])
-        self.ants.append(ant)
-
-    def exploring_ant(self, direction):
-        increment = int(np.random.choice(5, 1, p=self.turnProbability))
-
-        ind = self.directions.index(direction)
-        if random.random() < 0.5:
-            next_ind = (ind + increment) % 8
-        else:
-            next_ind = (ind - increment + 8) % 8
-
-        return self.directions[next_ind]
-
-    def following_ant(self, possible_directions, neighbor_pheromones, ant_direction) -> list:
-        if random.random() < self.fidelity:
-            max_state = max(neighbor_pheromones)
-            idx = neighbor_pheromones.index(max_state)
-            direction = possible_directions[idx]
-        else:
-            direction = self.exploring_ant(ant_direction)
-
-        return direction
-
-    def forking_algo(self, possible_directions, neighbor_pheromones, ant_direction) -> list:
-        if neighbor_pheromones[0] > 0:
-            direction = possible_directions[0]
-        elif neighbor_pheromones[1] > neighbor_pheromones[2]:
-            direction = possible_directions[1]
-        elif neighbor_pheromones[2] > neighbor_pheromones[1]:
-            direction = possible_directions[2]
-        else:
-            direction = self.exploring_ant(ant_direction)
-
-        return direction
-
-    def choose_direction(self, ant) -> list:
-        possible_directions = ant.find_next_possible_points()
-        neighbor_pheromones, trail_count = ant.pheromone_check(self.z)
-
-        if trail_count == 0:
-            direction = self.exploring_ant(ant.direction)
-        elif trail_count == 1:
-            direction = self.following_ant(
-                possible_directions, neighbor_pheromones, ant.direction)
-        else:
-            direction = self.forking_algo(
-                possible_directions, neighbor_pheromones, ant.direction)
-
-        return direction
-    
-    def move(self): 
-        for ant in self.ants: 
-            self.future_z[ant.x][ant.y] = self.z[ant.x][ant.y] + self.deposition_rate
-            next_direction = self.choose_direction(ant)
-            ant.x += next_direction[0]
-            ant.y += next_direction[1]
-            ant.direction = next_direction 
-            if 0 <= ant.x < 256 and 0 <= ant.y < 256: 
-                self.ants_tracking.append(ant)
-
-        np.subtract(self.future_z, self.evaporation_rate)
-        self.future_z = edge_snip(self.future_z, min_value=0)
-        
-        self.z = self.future_z
-        self.ants = self.ants_tracking
-        self.ants_tracking = []
+        return neighbor_pheromone_levels, trail_count

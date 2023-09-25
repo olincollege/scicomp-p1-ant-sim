@@ -36,3 +36,11 @@ Plot related things
 7 --> 315
 
 left right
+
+Refactoring Notes:
+-from softdes
+    - renaming Variables
+        - snake case
+        - constants are all CAPS
+    - re-writing code blocks
+    - splitting functions

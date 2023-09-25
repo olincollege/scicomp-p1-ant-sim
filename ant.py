@@ -1,9 +1,14 @@
+""" ant.py
+This file defines the Ant class, which represents an individual ant in the simulation. It contains
+methods for calculating possible directions, checking pheromone levels, and determining the next 
+direction for an ant.
+"""
+
 # Setting coordinates for each of the 8 directions an ant could travel in.
 DIRECTIONS = [
     [0, 1], [1, 1], [1, 0], [1, -1],
     [0, -1], [-1, -1], [-1, 0], [-1, 1]
 ]
-
 
 class Ant:
     """
@@ -40,7 +45,8 @@ class Ant:
         Args: N/A
 
         Returns:
-            self.possible_directions: A list of lists (each with two integers) representing possible directions.
+            self.possible_directions: A list of lists (each with two integers) representing 
+            possible directions.
         """
         # Pulling index of current direction
         current_direction_index = DIRECTIONS.index(self.current_direction)
@@ -62,20 +68,24 @@ class Ant:
         Check pheromone levels in neighboring directions and count the number of trails.
 
         Args:
-            grid (list of list of float): A list of lists of floats representing the pheromone levels in the grid.
+            grid (list of list of float): A list of lists of floats representing the pheromone 
+            levels in the grid.
 
         Returns:
-            neighbor_pheromone_levels: A list of floats representing pheromone levels in neighboring cells.
-            trail_count: An integer representing the number of neighboring cells with nonzero pheromone levels.
+            neighbor_pheromone_levels: A list of floats representing pheromone levels in 
+            neighboring cells.
+            trail_count: An integer representing the number of neighboring cells with nonzero
+            pheromone levels.
         """
         # Initializing variables for function.
         neighbor_pheromone_levels = []
         trail_count = 0
         grid_size = len(grid)
 
-        # For each of the possible directions the loop looks at the point the ant would go to if they were to travel in that direction.
-        for dx, dy in self.possible_directions:
-            new_x, new_y = self.x_coord + dx, self.y_coord + dy
+        # For each of the possible directions the loop looks at the point the ant would go to if
+        # they were to travel in that direction.
+        for d_x, d_y in self.possible_directions:
+            new_x, new_y = self.x_coord + d_x, self.y_coord + d_y
 
             # Ensuring point is within the grid limits.
             if 0 <= new_x < grid_size and 0 <= new_y < grid_size:

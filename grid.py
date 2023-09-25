@@ -1,3 +1,9 @@
+""" grid.py
+The Grid class in this file represents the grid on which the ants move and deposit pheromones. It
+includes methods for spawning ants, moving ants, and determining their next directions based on
+pheromone levels and other factors.
+"""
+
 import random
 import numpy as np
 from ant import Ant
@@ -13,7 +19,7 @@ class Grid:
         deposition_rate: Float representing the rate at which the pheromone is deposited by ants.
         evaporation_rate: Float representing the rate at which the pheromone evaporates over time.
         fidelity: Float represent the probability of moving in the same direction).
-        turn_probability: List of floats representing the probabilities of turning in 45° increments.
+        turn_probability: List of floats representing probabilities of turning in 45° increments.
     """
 
     def __init__(self, size, deposition_rate, evaporation_rate, fidelity, turn_probability):
@@ -22,10 +28,13 @@ class Grid:
 
         Args:
             size: Integer representing the size of the grid (square grid).
-            deposition_rate: Float representing the rate at which the pheromone is deposited by ants.
-            evaporation_rate: Float representing the rate at which the pheromone evaporates over time.
+            deposition_rate: Float representing the rate at which the pheromone is deposited by 
+            ants.
+            evaporation_rate: Float representing the rate at which the pheromone evaporates over 
+            time.
             fidelity: Float represent the probability of moving in the same direction).
-            turn_probability: List of floats representing the probabilities of turning in 45° increments.
+            turn_probability: List of floats representing the probabilities of turning in 45° 
+            increments.
 
         Returns: N/A        
         """
@@ -94,13 +103,15 @@ class Grid:
 
         return next_direction
 
-    def trail_following_ant(self, possible_directions, neighbor_pheromone_levels, ant_direction) -> list:
+    def trail_following_ant(self, possible_directions, neighbor_pheromone_levels, ant_direction):
         """
         Determine next direction when ant is in trail following mode.
 
         Args:
-            possible_directions: A list of lists (each with two integers) representing possible directions.
-            neighbor_pheromone_levels: A list of floats representing pheromone levels in neighboring cells.
+            possible_directions: A list of lists (each with two integers) representing possible
+            directions.
+            neighbor_pheromone_levels: A list of floats representing pheromone levels in
+            neighboring cells.
             ant_direction: A list of two integers representing the current direction of the ant.            
 
         Returns:
@@ -117,24 +128,30 @@ class Grid:
             # Picking corresponding direction of the index of the max pheromone.
             next_direction = possible_directions[max_pheromone_index]
         else:
-            # If the fidelity threshold is crossed, the ant stops following a trail and starts exploring.
+            # If the fidelity threshold is crossed, the ant stops following a trail and starts
+            # exploring.
             next_direction = self.exploring_ant(ant_direction)
 
         return next_direction
 
-    def choose_forking_direction(self, possible_directions, neighbor_pheromone_levels, ant_direction) -> list:
+    def choose_forking_direction(self, possible_directions, neighbor_pheromone_levels,
+                                 ant_direction):
         """
-        Determine next direction when ant is in trail following mode and there are multiple trails available.
+        Determine next direction when ant is in trail following mode and there are multiple trails
+        available.
 
         Args:
-            possible_directions: A list of lists (each with two integers) representing possible directions.
-            neighbor_pheromone_levels: A list of floats representing pheromone levels in neighboring cells.
+            possible_directions: A list of lists (each with two integers) representing possible
+            directions.
+            neighbor_pheromone_levels: A list of floats representing pheromone levels in
+            neighboring cells.
             ant_direction: A list of two integers representing the current direction of the ant.
 
         Returns:
             next_direction: A list of two integers representing the next direction of the ant.
         """
-        # If there is a pheromone trail in the 0th index (which represents going straight) then go straight.
+        # If there is a pheromone trail in the 0th index (which represents going straight) then go
+        # straight.
         if neighbor_pheromone_levels[0] > 0:
             next_direction = possible_directions[0]
 
@@ -146,18 +163,20 @@ class Grid:
         elif neighbor_pheromone_levels[2] > neighbor_pheromone_levels[1]:
             next_direction = possible_directions[2]
 
-        # If there is no straight path and the left and right are equal, the ant stops following a trail and starts exploring.
+        # If there is no straight path and the left and right are equal, the ant stops following a
+        # trail and starts exploring.
         else:
             next_direction = self.exploring_ant(ant_direction)
 
         return next_direction
 
-    def choose_direction(self, ant) -> list:
+    def choose_direction(self, ant):
         """
         Choose the next direction for an ant based on pheromone levels and trail count.
 
         Args:
-            ant (Ant): An object of the Ant class representing the ant for which to choose the next direction.
+            ant (Ant): An object of the Ant class representing the ant for which to choose the next
+            direction.
 
         Returns:
             next_direction: A list of two integers representing the next direction of the ant.
@@ -194,10 +213,13 @@ class Grid:
 
         Returns: N/A        
         """
-        # Going through all ants currenting in grid and updating the pheromone level of their coordinates with the deposition rate.
+        # Going through all ants currenting in grid and updating the pheromone level of their
+        # coordinates with the deposition rate.
         for ant in self.current_ants:
-            self.next_grid[ant.x_coord][ant.y_coord] = self.current_grid[ant.x_coord][ant.y_coord] + \
+            self.next_grid[ant.x_coord][ant.y_coord] = (
+                self.current_grid[ant.x_coord][ant.y_coord] +
                 self.deposition_rate
+                )
 
             # Determining next direction for the ant.
             next_direction = self.choose_direction(ant)
@@ -207,7 +229,8 @@ class Grid:
             ant.y_coord += next_direction[1]
             ant.current_direction = next_direction
 
-            # Checking is ant is still on the grid before appending to list of where ants will end up next.
+            # Checking is ant is still on the grid before appending to list of where ants will end
+            # up next.
             if 0 <= ant.x_coord < self.size and 0 <= ant.y_coord < self.size:
                 self.next_ants.append(ant)
 
